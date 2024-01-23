@@ -17,3 +17,13 @@ dados_orcamento_2023%>%
   mutate(nome_curto = reorder(nome_curto, pago_empenhado)) %>%
   ggplot(aes(x= pago_empenhado, y= nome_curto)) +
   geom_col()
+
+
+
+
+dados_orcamento_2023%>%
+  mutate(pago_empenhado = (pago/empenhado)*100)%>%
+  mutate(categoria  = "Ministérios") %>%
+  ggplot(aes(x=categoria, y=pago_empenhado)) +
+  geom_boxplot(fill=NA, outlier.shape = NA) +
+  geom_jitter() 
