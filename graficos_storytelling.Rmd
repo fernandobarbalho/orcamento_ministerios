@@ -1,0 +1,54 @@
+---
+title: "Untitled"
+author: "Fernando Almeida Barbalho"
+date: '2024-01-23'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(tidyverse)
+
+dados_orcamento_2023 <- readRDS("~/Github/orcamento_ministerios/dados_orcamento_2023.rds")
+```
+
+
+```{r}
+
+dados_orcamento_2023%>%
+  mutate(empenhado_dotacao = (empenhado/dotacao_atual)*100) %>%
+  mutate(nome_curto = reorder(nome_curto, empenhado_dotacao)) %>%
+  ggplot(aes(x= empenhado_dotacao, y= nome_curto)) +
+  geom_col()
+
+```
+
+```{r}
+dados_orcamento_2023%>%
+  mutate(pago_dotacao = (pago/dotacao_atual)*100) %>%
+  mutate(nome_curto = reorder(nome_curto, pago_dotacao)) %>%
+  ggplot(aes(x= pago_dotacao, y= nome_curto)) +
+  geom_col()
+
+```
+
+```{r}
+dados_orcamento_2023%>%
+  mutate(pago_empenhado = (pago/empenhado)*100) %>%
+  mutate(nome_curto = reorder(nome_curto, pago_empenhado)) %>%
+  ggplot(aes(x= pago_empenhado, y= nome_curto)) +
+  geom_col()
+
+```
+
+```{r}
+dados_orcamento_2023%>%
+  mutate(pago_empenhado = (pago/empenhado)*100)%>%
+  mutate(categoria  = "Ministérios") %>%
+  ggplot(aes(x=categoria, y=pago_empenhado)) +
+  geom_boxplot(fill=NA, outlier.shape = NA) +
+  geom_jitter() 
+
+```
+

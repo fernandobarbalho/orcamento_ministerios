@@ -1,4 +1,5 @@
 library(tidyverse)
+library(readxl)
 dados_orcamento_2023 <- read_delim("dados_orcamento_2023.csv", 
                                    delim = ";", escape_double = FALSE, locale = locale(decimal_mark = ",", 
                                                                                        grouping_mark = "."), trim_ws = TRUE)
@@ -163,3 +164,95 @@ print(ministerios_substituidos)
 
 
 dados_orcamento_2023$nome_curto<- nomes_sugeridos
+
+dados_orcamento_2023%>%saveRDS("dados_orcamento_2023.rds")
+
+
+
+#Dados de execução do cálculo do teto do gasto
+#Origem dos dados: https://www.tesourotransparente.gov.br/ckan/dataset/8675a0a4-31c5-4593-a24d-fb8e17376eca/resource/44c1aa69-a1ef-4efd-8e77-8346f8883c38/download/tetonov23.xlsx
+
+tetonov23 <- read_excel("tetonov23.xlsx", 
+                        sheet = "2023")
+
+tetonov23<- janitor::clean_names(tetonov23)
+
+tetonov23 %>%
+  select(orgao_descricao,
+         unidade_orcamentaria_descricao,
+         dotacao_inicial:restos_a_pagar_pagos) %>%
+  pivot_longer(cols = dotacao_inicial:restos_a_pagar_pagos,
+               names_to = "status",
+               values_to = "valor") %>%
+  summarise(valor_total = sum(valor),
+            .by= c(orgao_descricao:status)) %>%
+  ungroup() %>%
+  pivot_wider( names_from = status, values_from =valor_total) %>%
+  mutate(categoria = "UO") %>%
+  mutate(pago_empenhado = (despesas_pagas/despesas_empenhadas)*100) %>%
+  filter(between(pago_empenhado,0,100)) %>%
+  ggplot(aes(x=categoria, y=pago_empenhado)) +
+  geom_boxplot(fill=NA, outlier.shape = NA) +
+  geom_jitter()  
+
+
+tetonov23 %>%
+  filter(poder == "EXE",
+         str_detect(str_to_lower(orgao_descricao), "ministerio")) %>%
+  select(orgao_descricao,
+         unidade_orcamentaria_descricao,
+         dotacao_inicial:restos_a_pagar_pagos) %>%
+  pivot_longer(cols = dotacao_inicial:restos_a_pagar_pagos,
+               names_to = "status",
+               values_to = "valor") %>%
+  summarise(valor_total = sum(valor),
+            .by= c(orgao_descricao, status)) %>%
+  ungroup() %>%
+  pivot_wider( names_from = status, values_from =valor_total) %>%
+  mutate(categoria = "ministerios") %>%
+  mutate(pago_empenhado = (despesas_pagas/despesas_empenhadas)*100) %>%
+  filter(between(pago_empenhado,0,100)) %>%
+  ggplot(aes(x=categoria, y=pago_empenhado)) +
+  geom_boxplot(fill=NA, outlier.shape = NA) +
+  geom_jitter()  
+
+
+
+
+tetonov23 %>%
+  filter(poder == "EXE",
+         str_detect(str_to_lower(orgao_descricao), "ministerio")) %>%
+  select(orgao_descricao,
+         unidade_orcamentaria_descricao,
+         dotacao_inicial:restos_a_pagar_pagos) %>%
+  pivot_longer(cols = dotacao_inicial:restos_a_pagar_pagos,
+               names_to = "status",
+               values_to = "valor") %>%
+  summarise(valor_total = sum(valor),
+            .by= c(orgao_descricao, status)) %>%
+  ungroup() %>%
+  pivot_wider( names_from = status, values_from =valor_total) %>%
+  mutate(pago_empenhado = (despesas_pagas/despesas_empenhadas)*100) %>%
+  filter(between(pago_empenhado,0,100)) %>%
+  mutate(orgao_descricao = reorder(orgao_descricao, pago_empenhado)) %>%
+  ggplot(aes(x=pago_empenhado, y= orgao_descricao)) +
+  geom_col()
+
+
+
+
+fab<-
+  tetonov23 %>%
+  select(orgao_descricao,
+         unidade_orcamentaria_descricao,
+         dotacao_inicial:restos_a_pagar_pagos) %>%
+  pivot_longer(cols = dotacao_inicial:restos_a_pagar_pagos,
+               names_to = "status",
+               values_to = "valor") %>%
+  summarise(valor_total = sum(valor),
+            .by= c(orgao_descricao:status)) %>%
+  ungroup() %>%
+  pivot_wider( names_from = status, values_from =valor_total) %>%
+  mutate(categoria = "UO") %>%
+  mutate(pago_empenhado = (despesas_pagas/despesas_empenhadas)*100) %>%
+  filter(!between(pago_empenhado,0,100))
