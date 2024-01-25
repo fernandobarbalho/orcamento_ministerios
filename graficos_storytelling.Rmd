@@ -24,8 +24,25 @@ dados_orcamento_2018_2023 <- readRDS("~/Github/orcamento_ministerios/dados_orcam
 dados_orcamento_2023%>%
   mutate(empenhado_dotacao = (empenhado/dotacao_atual)*100) %>%
   mutate(nome_curto = reorder(nome_curto, empenhado_dotacao)) %>%
+  mutate(destaque = ifelse(nome_curto=="Desenvolvimento e Indústria",1,0)) %>%
   ggplot(aes(x= empenhado_dotacao, y= nome_curto)) +
-  geom_col()
+  geom_col(aes(fill=destaque), show.legend = FALSE)+
+  geom_text(aes(label= round(empenhado_dotacao,1)),
+            hjust = 1,
+            color = "white",
+            size = 3)+
+  theme_light()+
+  theme(
+    panel.grid = element_blank(),
+    panel.border = element_blank()
+  ) +
+  labs(
+    title = "Ranking empenhado/dotação entre órgãos",
+    subtitle = "Valores em (%)",
+    x = "",
+    y = ""
+  )
+
 
 ```
 
@@ -33,8 +50,25 @@ dados_orcamento_2023%>%
 dados_orcamento_2023%>%
   mutate(pago_dotacao = (pago/dotacao_atual)*100) %>%
   mutate(nome_curto = reorder(nome_curto, pago_dotacao)) %>%
+  mutate(destaque = ifelse(nome_curto=="Desenvolvimento e Indústria",1,0)) %>%
   ggplot(aes(x= pago_dotacao, y= nome_curto)) +
-  geom_col()
+  geom_col(aes(fill=destaque), show.legend = FALSE)+
+  geom_text(aes(label= round(pago_dotacao,1)),
+            hjust = 1,
+            color = "white",
+            size = 3)+
+  theme_light()+
+  theme(
+    panel.grid = element_blank(),
+    panel.border = element_blank()
+  ) +
+  labs(
+    title = "Ranking pago/dotação entre órgãos",
+    subtitle = "Valores em (%)",
+    x = "",
+    y = ""
+  )
+
 
 ```
 
@@ -42,8 +76,24 @@ dados_orcamento_2023%>%
 dados_orcamento_2023%>%
   mutate(pago_empenhado = (pago/empenhado)*100) %>%
   mutate(nome_curto = reorder(nome_curto, pago_empenhado)) %>%
+  mutate(destaque = ifelse(nome_curto=="Desenvolvimento e Indústria",1,0)) %>%
   ggplot(aes(x= pago_empenhado, y= nome_curto)) +
-  geom_col()
+  geom_col(aes(fill=destaque), show.legend = FALSE)+
+  geom_text(aes(label= round(pago_empenhado,1)),
+            hjust = 1,
+            color = "white",
+            size = 3)+
+  theme_light()+
+  theme(
+    panel.grid = element_blank(),
+    panel.border = element_blank()
+  ) +
+  labs(
+    title = "Ranking pago/empenhado entre órgãos",
+    subtitle = "Valores em (%)",
+    x = "",
+    y = ""
+  )
 
 ```
 
