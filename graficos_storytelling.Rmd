@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 library(tidyverse)
 library(colorspace)
 library(viridis)
+library(ggrepel)
 
 dados_orcamento_2023 <- readRDS("~/Github/orcamento_ministerios/dados_orcamento_2023.rds")
 df_de_para <- readRDS("~/Github/orcamento_ministerios/df_de_para.RDS")
@@ -98,6 +99,51 @@ dados_orcamento_2023%>%
 ```
 
 ```{r}
+
+destaque<- 
+  dados_orcamento_2023 %>%
+  filter(nome_curto=="Desenvolvimento e Indústria")
+
+
+fab<-
+  dados_orcamento_2023%>%
+  mutate(pago_empenhado = (pago/empenhado)*100)
+
+dados_orcamento_2023%>%
+  mutate(pago_empenhado = (pago/empenhado)*100) %>%
+  ggplot(aes(x= pago/10^9, y= empenhado/10^9)) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "dashed") +
+  geom_point( aes(fill= pago_empenhado, color= pago_empenhado ),   pch= 21, show.legend = TRUE)+
+  geom_text_repel(data= destaque, 
+                  aes(x= pago/10^9, 
+                      y= empenhado/10^9, 
+                      label= str_wrap(  paste(nome_curto, "(E:",round(empenhado/10^9,1) , "P:", round(pago/10^9,1),")"),60)),  
+                  box.padding = 0.8,
+                  nudge_y = -0.5,
+                  size= 2.5,
+                  hjust = -0.1) +
+  scale_x_log10(labels = scales::number_format(scale = 1), limits = c(0,1000))+
+  scale_y_log10(labels = scales::number_format(scale = 1), limits = c(0,1000))+
+  scale_fill_continuous_sequential (palette = "Heat 2") +
+  scale_color_continuous_sequential (palette = "Heat 2") +
+  theme_light()+
+  theme(
+    panel.grid = element_blank(),
+    panel.border = element_blank()
+  ) +
+  labs(
+    title = "Dispersão pago/empenhado entre órgãos",
+    subtitle = "Valores em R$bi",
+    x = "Valores empenhados (E)",
+    y = "Valores pagos (P)"
+  ) 
+
+
+```
+
+
+
+```{r}
 dados_orcamento_2023%>%
   mutate(pago_empenhado = (pago/empenhado)*100)%>%
   mutate(categoria  = "Ministérios") %>%
@@ -134,16 +180,16 @@ dados_orcamento_2018_2023 %>%
   anti_join(dados_selecao) %>%
   mutate(pago_empenhado = (pago/empenhado)*100)%>%
   ggplot(aes(x=ano, y=pago_empenhado)) +
-  geom_jitter(pch= 21, fill= "#DCDCDC",color="#B8B8B8") +  
+  geom_jitter(pch= 21, fill= "lightgray",color="#B8B8B8") +  
   geom_boxplot(fill=NA,  outlier.shape = NA, color = "black", fatten = 1.5) +
-  geom_jitter(data= dados_selecao, aes(fill= str_wrap(nome_curto,20), color = str_wrap(nome_curto,20)),  pch= 21, size =2 ) +
+  geom_jitter(data= dados_selecao, aes(fill= str_wrap(nome_curto,20)), color="#B8B8B8", pch= 21, size=2 ) +
   scale_fill_discrete_divergingx(palette = "Zissou 1") +
   scale_color_discrete_divergingx(palette = "Zissou 1")+
   theme_light()+
   theme(
     panel.grid = element_blank(),
     panel.border = element_blank(),
-    panel.background = element_rect(fill= "#B8B8B8")
+    panel.background = element_rect(fill= "white")
   ) +
   labs(
     title = "Distribuição de pago/efetivo entre as Unidades Orçamentárias",
@@ -188,16 +234,16 @@ dados_orcamento_2018_2023 %>%
   anti_join(dados_selecao) %>%
   mutate(pago_empenhado = (pago/empenhado)*100)%>%
   ggplot(aes(x=ano, y=pago_empenhado)) +
-  geom_jitter(pch= 21, fill= "#DCDCDC",color="#B8B8B8") +  
+  geom_jitter(pch= 21, fill= "lightgray",color="#B8B8B8") +  
   geom_boxplot(fill=NA,  outlier.shape = NA,fatten = 1.5) +
-  geom_jitter(data= dados_selecao, aes(fill= nome_curto, color = nome_curto), pch= 21, size =2 ) +
+  geom_jitter(data= dados_selecao, aes(fill= nome_curto), color = "lightgray", pch= 21, size =2 ) +
   scale_fill_discrete_divergingx(palette = "Roma") +
   scale_color_discrete_divergingx(palette = "Roma")+
   theme_light()+
   theme(
     panel.grid = element_blank(),
     panel.border = element_blank(),
-    panel.background = element_rect(fill= "#B8B8B8")
+    panel.background = element_rect(fill= "white")
   ) +
   labs(
     title = "Distribuição de pago/efetivo entre as Unidades Orçamentárias",
