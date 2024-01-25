@@ -27,3 +27,20 @@ dados_orcamento_2023%>%
   ggplot(aes(x=categoria, y=pago_empenhado)) +
   geom_boxplot(fill=NA, outlier.shape = NA) +
   geom_jitter() 
+
+dados_orcamento_2018_2023 %>%
+  mutate(pago_empenhado = (pago/empenhado)*100)%>%
+  ggplot(aes(x=ano, y=pago_empenhado)) +
+  geom_jitter() +  
+  geom_boxplot(fill=NA,  outlier.shape = NA, color= "red") 
+
+dados_orcamento_2018_2023 %>%
+  filter(empenhado>0) %>%
+  mutate(pago_empenhado = (pago/empenhado)*100)%>%
+  summarise(mediana = median(pago_empenhado),
+            .by= ano)
+
+dados_orcamento_2023%>%
+  mutate(pago_dotacao = (pago/dotacao_atual)*100) %>%
+  summarise(mean(pago_dotacao),
+            median(pago_dotacao))

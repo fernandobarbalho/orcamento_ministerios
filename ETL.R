@@ -324,3 +324,10 @@ dados_orcamento_2018_2023<- dados_orcamento_2018_2023[1:1411,]
 dados_orcamento_2018_2023 %>%
   saveRDS("dados_orcamento_2018_2023.rds")
 
+
+dados_orcamento_2018_2023  %>%
+  filter(ano==2023,
+         orgao_orcamentario == "28000 - Ministério do Desenvolvimento, Indústria, Comércio e Serviços" ) %>%
+  mutate(pago_dotacao_atual = (pago/dotacao_atual)*100) %>%
+  write_csv("uo_selecao.csv")
+
