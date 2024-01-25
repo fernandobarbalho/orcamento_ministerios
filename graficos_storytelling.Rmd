@@ -102,25 +102,28 @@ dados_orcamento_2023%>%
 
 destaque<- 
   dados_orcamento_2023 %>%
-  filter(nome_curto=="Desenvolvimento e Indústria")
-
-
-fab<-
-  dados_orcamento_2023%>%
+  filter(nome_curto=="Desenvolvimento e Indústria") %>%
   mutate(pago_empenhado = (pago/empenhado)*100)
+
 
 dados_orcamento_2023%>%
   mutate(pago_empenhado = (pago/empenhado)*100) %>%
-  ggplot(aes(x= pago/10^9, y= empenhado/10^9)) +
-  geom_smooth(method = "lm", se = FALSE, linetype = "dashed") +
-  geom_point( aes(fill= pago_empenhado, color= pago_empenhado ),   pch= 21, show.legend = TRUE)+
+  ggplot(aes(x=empenhado/10^9 , y= pago/10^9)) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "dashed", color = "lightgray") +
+  geom_point( aes(fill= pago_empenhado, color= pago_empenhado ),   pch= 21, show.legend = TRUE, size=2)+
   geom_text_repel(data= destaque, 
                   aes(x= pago/10^9, 
                       y= empenhado/10^9, 
-                      label= str_wrap(  paste(nome_curto, "(E:",round(empenhado/10^9,1) , "P:", round(pago/10^9,1),")"),60)),  
+                      label= paste(nome_curto, 
+                                   "(E:",
+                                   round(empenhado/10^9,1) , 
+                                   "P:", 
+                                   round(pago/10^9,1),
+                                   "P/E:", 
+                                   round(pago_empenhado,1), "% )")),  
                   box.padding = 0.8,
                   nudge_y = -0.5,
-                  size= 2.5,
+                  size= 3,
                   hjust = -0.1) +
   scale_x_log10(labels = scales::number_format(scale = 1), limits = c(0.1,1000))+
   scale_y_log10(labels = scales::number_format(scale = 1), limits = c(0.1,1000))+
@@ -133,9 +136,11 @@ dados_orcamento_2023%>%
   ) +
   labs(
     title = "Dispersão pago/empenhado entre órgãos",
-    subtitle = "Valores em R$bi",
+    subtitle = "Valores em R$bi - escala log",
     x = "Valores empenhados (E)",
-    y = "Valores pagos (P)"
+    y = "Valores pagos (P)",
+    fill = str_wrap("P/E (%)", 10),
+    color = str_wrap("P/E (%)", 10)
   ) 
 
 
@@ -192,10 +197,9 @@ dados_orcamento_2018_2023 %>%
     panel.background = element_rect(fill= "white")
   ) +
   labs(
-    title = "Distribuição de pago/efetivo entre as Unidades Orçamentárias",
+    title = "Distribuição de pago/empenhado entre as Unidades Orçamentárias",
     subtitle = "Valores em (%)",
-    fill = "Órgão central",
-    color = "Órgão central",
+    fill = "Órgão orçamentário",
     x = "",
     y = ""
   )
@@ -221,6 +225,15 @@ pago_empenhado_ministerios<-
 ministerios_mais_executores<- pago_empenhado_ministerios$orgao_orcamentario  
 ministerios_selecao<- c(ministerios_mais_executores, "28000 - Ministério do Desenvolvimento, Indústria, Comércio e Serviços")
 
+uo_selecao<- 
+  dados_orcamento_2018_2023  %>%
+  inner_join(df_de_para) %>% 
+  filter(ano==2023,
+         orgao_orcamentario == "28000 - Ministério do Desenvolvimento, Indústria, Comércio e Serviços" ) %>%
+  mutate(pago_empenhado = (pago/empenhado)*100) %>%
+  slice_min(order_by = pago_empenhado, n=1 )
+  
+
 dados_selecao<-
   dados_orcamento_2018_2023 %>%
   filter(ano==2023) %>%
@@ -236,7 +249,20 @@ dados_orcamento_2018_2023 %>%
   ggplot(aes(x=ano, y=pago_empenhado)) +
   geom_jitter(pch= 21, fill= "lightgray",color="#B8B8B8") +  
   geom_boxplot(fill=NA,  outlier.shape = NA,fatten = 1.5) +
-  geom_jitter(data= dados_selecao, aes(fill= nome_curto), color = "lightgray", pch= 21, size =2 ) +
+  geom_point(data= dados_selecao, aes(fill= nome_curto), color = "lightgray", pch= 21, size =2 ) +
+  geom_text_repel(data= uo_selecao, 
+                  aes(x= ano, 
+                      y= pago_empenhado, 
+                      label= str_wrap(paste(unidade_orcamentaria, 
+                                   "(E:",
+                                   round(empenhado/10^9,2) , 
+                                   "P:", 
+                                   round(pago/10^9,2),
+                                   "P/E:", 
+                                   round(pago_empenhado,1), "% )"),50)),  
+                  box.padding = 0.8,
+                  nudge_y = -10,
+                  size= 3) +
   scale_fill_discrete_divergingx(palette = "Roma") +
   scale_color_discrete_divergingx(palette = "Roma")+
   theme_light()+
@@ -246,10 +272,9 @@ dados_orcamento_2018_2023 %>%
     panel.background = element_rect(fill= "white")
   ) +
   labs(
-    title = "Distribuição de pago/efetivo entre as Unidades Orçamentárias",
-    subtitle = "Valores em (%)",
-    fill = "Órgão central",
-    color = "Órgão central",
+    title = "Distribuição de pago/empenhado entre as Unidades Orçamentárias",
+    subtitle = "Valores em (%) e em R$(Bi)",
+    fill = "Órgão orçamentário",
     x = "",
     y = ""
   )
