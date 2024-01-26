@@ -261,7 +261,7 @@ dados_orcamento_2018_2023 %>%
   ggplot(aes(x=ano, y=pago_dotacao_atual)) +
   geom_jitter(pch= 21, fill= "lightgray",color="#B8B8B8") +  
   geom_boxplot(fill=NA,  outlier.shape = NA,fatten = 1.5) +
-  geom_point(data= dados_selecao, aes(fill= nome_curto), color = "lightgray", pch= 21, size =2 ) +
+  geom_jitter(data= dados_selecao, aes(fill= nome_curto), color = "lightgray", pch= 21, size =2 ) +
   # geom_text_repel(data= uo_selecao,
   #                 aes(x= ano,
   #                     y= pago_dotacao_atual,
