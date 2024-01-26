@@ -40,7 +40,47 @@ dados_orcamento_2018_2023 %>%
   summarise(mediana = median(pago_empenhado),
             .by= ano)
 
+
+
+dados_orcamento_2018_2023 %>%
+  mutate(pago_dotacao = (pago/dotacao_atual)*100)%>%
+  summarise(mediana = median(pago_empenhado),
+            .by= ano)
+
+summary(fab)
+
+fab<-
+  dados_orcamento_2023%>%
+  filter(dotacao >0 ) %>%
+  mutate(pago_dotacao = (empenhado/dotacao_atual)*100) %>%
+  
+  
+
+dados_orcamento_2023%>%
+  mutate(pago_dotacao = (empenhado/dotacao_atual)*100) %>%
+  summarise(mean(pago_dotacao),
+            median(pago_dotacao))
+
+
 dados_orcamento_2023%>%
   mutate(pago_dotacao = (pago/dotacao_atual)*100) %>%
   summarise(mean(pago_dotacao),
-            median(pago_dotacao))
+            median(pago_dotacao),
+            min(pago_dotacao))
+
+
+modelo<- lm(log(pago)~log(dotacao_atual), data = dados_orcamento_2023[-c(22),])
+
+summary(modelo)
+
+plot(modelo)
+
+performance::check_model(modelo)
+
+
+
+modelo<- lm(log(pago)~log(dotacao_atual), data = dados_orcamento_2023[,])
+
+
+
+performance::check_model(modelo)

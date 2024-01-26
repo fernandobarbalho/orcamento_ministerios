@@ -3,8 +3,8 @@ title: "Untitled"
 author: "Fernando Almeida Barbalho"
 date: '2024-01-23'
 output:
-  word_document: default
   html_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -14,7 +14,7 @@ library(tidyverse)
 library(colorspace)
 library(viridis)
 library(ggrepel)
-library(kableExtra)
+#library(kableExtra)
 
 dados_orcamento_2023 <- readRDS("~/Github/orcamento_ministerios/dados_orcamento_2023.rds")
 df_de_para <- readRDS("~/Github/orcamento_ministerios/df_de_para.RDS")
@@ -108,7 +108,7 @@ dados_orcamento_2023%>%
 
 destaque<- 
   dados_orcamento_2023 %>%
-  filter(nome_curto=="Desenvolvimento e Indústria") %>%
+  filter(nome_curto %in% c("Desenvolvimento e Indústria", "Turismo","Desenvolvimento Social")) %>%
   mutate(pago_dotacao = (pago/dotacao_atual)*100)
 
 
@@ -122,17 +122,18 @@ dados_orcamento_2023%>%
                       y= pago/10^9, 
                       label= paste(nome_curto, 
                                    "(D:",
-                                   round(dotacao_atual/10^9,1) , 
+                                   round(dotacao_atual/10^9,2) , 
                                    "P:", 
-                                   round(pago/10^9,1),
+                                   round(pago/10^9,2),
                                    "P/D:", 
                                    round(pago_dotacao,1), "% )")),  
                   #box.padding = 0.8,
-                  nudge_y = -0.8,
+                  nudge_y = c(-0.8,0,0),
+                  nudge_x = c(0,0.3,-4.5),
                   size= 3,
                   hjust = -0.1) +
-  scale_x_log10(labels = scales::number_format(scale = 1), limits = c(0.1,1000))+
-  scale_y_log10(labels = scales::number_format(scale = 1), limits = c(0.1,1000))+
+  scale_x_log10(labels = scales::number_format(scale = 1), limits = c(0.001,1000))+
+  scale_y_log10(labels = scales::number_format(scale = 1), limits = c(0.001,1000))+
   scale_fill_continuous_sequential (palette = "Heat 2") +
   scale_color_continuous_sequential (palette = "Heat 2") +
   theme_light()+
@@ -296,8 +297,8 @@ dados_orcamento_2018_2023 %>%
 
 ```{r}
 
-uo_selecao %>%
-kable("html") %>%
-  kable_styling(bootstrap_options = c("striped", "hover"))
+# uo_selecao %>%
+# kable("html") %>%
+#   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
