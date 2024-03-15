@@ -1,0 +1,321 @@
+---
+title: "Untitled"
+author: "Fernando Almeida Barbalho"
+date: '2024-01-23'
+output:
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(colorspace)
+library(viridis)
+library(ggrepel)
+#library(kableExtra)
+
+dados_orcamento_trabalho_ministerios <- readRDS("dados_orcamento_trabalho_ministerios.rds")
+df_de_para <- readRDS("~/Github/orcamento_ministerios/df_de_para.RDS")
+dados_orcamento_2018_2023 <- readRDS("~/Github/orcamento_ministerios/dados_orcamento_2018_2023.rds")
+dados_orcamento_trabalho <- readRDS("dados_orcamento_trabalho.rds")
+
+```
+
+
+```{r}
+
+dados_orcamento_trabalho_ministerios%>%
+  mutate(empenhado_dotacao = (empenhado/dotacao_atual)*100) %>%
+  mutate(nome_curto = reorder(nome_curto, empenhado_dotacao)) %>%
+  mutate(destaque = ifelse(nome_curto=="Desenvolvimento e Indústria",1,0)) %>%
+  ggplot(aes(x= empenhado_dotacao, y= nome_curto)) +
+  geom_col(aes(fill=destaque), show.legend = FALSE)+
+  geom_text(aes(label= round(empenhado_dotacao,1)),
+            hjust = 1,
+            color = "white",
+            size = 3)+
+  theme_light()+
+  theme(
+    panel.grid = element_blank(),
+    panel.border = element_blank()
+  ) +
+  labs(
+    title = "Ranking empenhado/dotação entre órgãos",
+    subtitle = "Valores em (%). Referência: 2024",
+    caption = "Fonte: SIOP. Elaboração própria",
+    x = "",
+    y = ""
+  )
+
+
+```
+
+```{r}
+dados_orcamento_trabalho_ministerios%>%
+  mutate(pago_dotacao = (pago/dotacao_atual)*100) %>%
+  mutate(nome_curto = reorder(nome_curto, pago_dotacao)) %>%
+  mutate(destaque = ifelse(nome_curto=="Desenvolvimento e Indústria",1,0)) %>%
+  ggplot(aes(x= pago_dotacao, y= nome_curto)) +
+  geom_col(aes(fill=destaque), show.legend = FALSE)+
+  geom_text(aes(label= round(pago_dotacao,1)),
+            hjust = 1,
+            color = "white",
+            size = 3)+
+  theme_light()+
+  theme(
+    panel.grid = element_blank(),
+    panel.border = element_blank()
+  ) +
+  labs(
+    title = "Ranking pago/dotação entre órgãos",
+    subtitle = "Valores em (%). Referência: 2024",
+    caption = "Fonte: SIOP. Elaboração própria",
+    x = "",
+    y = ""
+  )
+
+
+```
+
+```{r}
+dados_orcamento_trabalho_ministerios%>%
+  mutate(pago_empenhado = (pago/empenhado)*100) %>%
+  mutate(nome_curto = reorder(nome_curto, pago_empenhado)) %>%
+  mutate(destaque = ifelse(nome_curto=="Desenvolvimento e Indústria",1,0)) %>%
+  ggplot(aes(x= pago_empenhado, y= nome_curto)) +
+  geom_col(aes(fill=destaque), show.legend = FALSE)+
+  geom_text(aes(label= round(pago_empenhado,1)),
+            hjust = 1,
+            color = "white",
+            size = 3)+
+  theme_light()+
+  theme(
+    panel.grid = element_blank(),
+    panel.border = element_blank()
+  ) +
+  labs(
+    title = "Ranking pago/empenhado entre órgãos",
+    subtitle = "Valores em (%). Referência: 2024",
+    caption = "Fonte: SIOP. Elaboração própria",
+    x = "",
+    y = ""
+  )
+
+```
+
+```{r}
+
+destaque<- 
+  dados_orcamento_trabalho_ministerios %>%
+  filter(nome_curto %in% c("Desenvolvimento e Indústria", "Esporte","Trabalho e Emprego")) %>%
+  mutate(pago_dotacao = (pago/dotacao_atual)*100)
+
+
+dados_orcamento_trabalho_ministerios%>%
+  mutate(pago_dotacao = (pago/dotacao_atual)*100) %>%
+  ggplot(aes(x=dotacao_atual/10^9 , y= pago/10^9)) +
+  geom_smooth(method = "lm", se = FALSE, linetype = "dashed", color = "lightgray") +
+  geom_point( aes(fill= pago_dotacao, color= pago_dotacao ),   pch= 21, show.legend = TRUE, size=2)+
+  geom_text_repel(data= destaque, 
+                  aes(x= dotacao_atual/10^9, 
+                      y= pago/10^9, 
+                      label= paste(nome_curto, 
+                                   "(D:",
+                                   round(dotacao_atual/10^9,2) , 
+                                   "P:", 
+                                   round(pago/10^9,2),
+                                   "P/D:", 
+                                   round(pago_dotacao,1), "% )")),  
+                  #box.padding = 0.8,
+                  nudge_y = c(-0.8,1,0),
+                  nudge_x = c(-2.5,-5,-4.5),
+                  size= 3,
+                  hjust = -0.1) +
+  scale_x_log10(labels = scales::number_format(scale = 1), limits = c(0.00001,1000))+
+  scale_y_log10(labels = scales::number_format(scale = 1), limits = c(0.00001,1000))+
+  scale_fill_continuous_sequential (palette = "Heat 2") +
+  scale_color_continuous_sequential (palette = "Heat 2") +
+  theme_light()+
+  theme(
+    panel.grid = element_blank(),
+    panel.border = element_blank()
+  ) +
+  labs(
+    title = "Dispersão pago/dotacao entre órgãos",
+    subtitle = "Valores em R$bi - escala log. Referência: 2024",
+    caption = "Fonte: SIOP. Elaboração própria",
+    x = "Valores dotação (D)",
+    y = "Valores pagos (P)",
+    fill = str_wrap("P/D (%)", 10),
+    color = str_wrap("P/D (%)", 10)
+  ) 
+
+
+```
+
+
+
+```{r}
+dados_orcamento_trabalho_ministerios%>%
+  mutate(pago_empenhado = (pago/empenhado)*100)%>%
+  mutate(categoria  = "Ministérios") %>%
+  ggplot(aes(x=categoria, y=pago_empenhado)) +
+  geom_boxplot(fill=NA, outlier.shape = NA) +
+  geom_jitter() 
+
+```
+
+```{r}
+
+# pago_dotacao_ministerios<-
+#   dados_orcamento_2018_2023 %>%
+#   summarise(pago = sum(pago),
+#             dotacao_atual = sum(dotacao_atual),
+#             .by = c(ano,orgao_orcamentario)) %>%
+#   ungroup() %>%
+#   mutate(pago_dotacao_atual = (pago/dotacao_atual)*100) %>%
+#   filter(pago_dotacao_atual<=100) %>%
+#   group_by(ano) %>%
+#   slice_max(order_by = pago_dotacao_atual, n=1 ) %>%
+#   select(ano, orgao_orcamentario)
+  
+pago_dotacao_ministerios<-
+  dados_orcamento_trabalho_ministerios %>%
+  mutate(pago_dotacao_atual = (pago/dotacao_atual)*100) %>%
+  filter(pago_dotacao_atual<=100) %>%
+  slice_max(order_by = pago_dotacao_atual, n=1 ) %>%
+  bind_rows(
+      dados_orcamento_trabalho_ministerios %>%
+  mutate(pago_dotacao_atual = (pago/dotacao_atual)*100) %>%
+  filter(pago_dotacao_atual<=100,
+         orgao_orcamentario == "28000 - Ministério do Desenvolvimento, Indústria, Comércio e Serviços") 
+  ) %>%
+  select(ano, orgao_orcamentario, nome_curto,pago_dotacao_atual)
+
+
+
+
+ dados_selecao<-
+   dados_orcamento_trabalho %>%
+   inner_join(pago_dotacao_ministerios, by= c("ano", "orgao_orcamentario")) %>%
+   mutate(pago_dotacao_atual = (pago/dotacao_atual)*100) %>%
+   filter(pago_dotacao_atual<=100) #%>%
+   #inner_join(df_de_para)
+  
+
+
+dados_orcamento_trabalho %>%
+  anti_join(dados_selecao) %>%
+  filter(dotacao_atual>0,
+         pago>0) %>%
+  mutate(pago_dotacao_atual = (pago/dotacao_atual)*100)%>%
+  filter(pago_dotacao_atual<=100) %>%
+  ggplot(aes(x=ano, y=pago_dotacao_atual)) +
+  geom_jitter(pch= 21, fill= "lightgray",color="#B8B8B8") +  
+  geom_boxplot(fill=NA,  outlier.shape = NA, color = "black", fatten = 1.5) +
+  geom_jitter(data= dados_selecao, aes(fill= str_wrap(nome_curto,20)), color="#B8B8B8", pch= 21, size=2 ) +
+  #scale_fill_discrete_divergingx(palette = "Zissou 1") +
+  scale_color_discrete_divergingx(palette = "Zissou 1")+
+  theme_light()+
+  theme(
+    panel.grid = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_rect(fill= "white")
+  ) +
+  labs(
+    title = "Distribuição de pago/dotacao entre as Unidades Orçamentárias",
+    subtitle = "Valores em (%). Referência: 2024",
+    caption = "Fonte: SIOP. Elaboração própria",
+    fill = "Órgão orçamentário",
+    x = "",
+    y = ""
+  )
+
+ 
+
+
+```
+
+```{r}
+pago_dotacao_ministerios<-
+  dados_orcamento_2018_2023 %>%
+  filter(ano==2023) %>%
+  summarise(pago = sum(pago),
+            dotacao_atual = sum(dotacao_atual),
+            .by = c(ano,orgao_orcamentario)) %>%
+  ungroup() %>%
+  mutate(pago_dotacao_atual = (pago/dotacao_atual)*100) %>%
+  group_by(ano) %>%
+  slice_max(order_by = pago_dotacao_atual, n=1 )
+  
+
+ministerios_mais_executores<- pago_dotacao_ministerios$orgao_orcamentario  
+ministerios_selecao<- c(ministerios_mais_executores, "28000 - Ministério do Desenvolvimento, Indústria, Comércio e Serviços")
+
+uo_selecao<- 
+  dados_orcamento_2018_2023  %>%
+  inner_join(df_de_para) %>% 
+  filter(ano==2023,
+         orgao_orcamentario == "28000 - Ministério do Desenvolvimento, Indústria, Comércio e Serviços" ) %>%
+  mutate(pago_dotacao_atual = (pago/dotacao_atual)*100) %>%
+  slice_min(order_by = pago_dotacao_atual, n=2 )
+  
+
+dados_selecao<-
+  dados_orcamento_2018_2023 %>%
+  filter(ano==2023) %>%
+  mutate(pago_dotacao_atual = (pago/dotacao_atual)*100) %>%
+  filter(orgao_orcamentario %in% ministerios_selecao) %>%
+  inner_join(df_de_para)
+
+
+dados_orcamento_2018_2023 %>%
+  filter(ano == 2023) %>%
+  anti_join(dados_selecao) %>%
+  mutate(pago_dotacao_atual = (pago/dotacao_atual)*100)%>%
+  ggplot(aes(x=ano, y=pago_dotacao_atual)) +
+  geom_jitter(pch= 21, fill= "lightgray",color="#B8B8B8") +  
+  geom_boxplot(fill=NA,  outlier.shape = NA,fatten = 1.5) +
+  geom_jitter(data= dados_selecao, aes(fill= nome_curto), color = "lightgray", pch= 21, size =2 ) +
+  # geom_text_repel(data= uo_selecao,
+  #                 aes(x= ano,
+  #                     y= pago_dotacao_atual,
+  #                     label= str_wrap(paste(unidade_orcamentaria,
+  #                                  "(E:",
+  #                                  round(dotacao_atual/10^9,2) ,
+  #                                  "D:",
+  #                                  round(pago/10^9,2),
+  #                                  "P/D:",
+  #                                  round(pago_dotacao_atual,1), "% )"),50)),
+  #                 box.padding = 0.8,
+  #                 nudge_y = -10,
+  #                 size= 3) +
+  scale_fill_discrete_divergingx(palette = "Roma") +
+  scale_color_discrete_divergingx(palette = "Roma")+
+  theme_light()+
+  theme(
+    panel.grid = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_rect(fill= "white")
+  ) +
+  labs(
+    title = "Distribuição de pago/dotacao entre as Unidades Orçamentárias",
+    subtitle = "Valores em (%). Referência: 2023",
+    caption = "Fonte: SIOP. Elaboração própria",
+    fill = "Órgão orçamentário",
+    x = "",
+    y = ""
+  )
+
+ 
+```
+
+```{r}
+
+# uo_selecao %>%
+# kable("html") %>%
+#   kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
